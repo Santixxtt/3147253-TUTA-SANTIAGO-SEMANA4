@@ -55,3 +55,15 @@ def eliminar_usuario(id: int, db: Session = Depends(database.get_db)):
     db.delete(db_usuario)
     db.commit()
     return {"message": "Usuario eliminado exitosamente"}
+
+@app.post("/login")
+def login(usuario: schemas.UsuarioLogin, db: Session = Depends(database.get_db)):
+    db_usuario = db.query(models.Usuario).filter(models.Usuario.correo == usuario.correo).first()
+    if not db_usuario:
+        raise HTTPException(status_code=400, detail="Credenciales incorrectas")
+
+    hashed_password = hashlib.sha256(usuario.clave.encode()).hexdigest()
+    if db_usuario.clave != hashed_password:
+        raise HTTPException(status_code=400, detail="Credenciales incorrectas")
+
+    return {"mensaje": "Inicio de sesión exitoso"}
